@@ -21,6 +21,23 @@ export const getAllUsers = async (
     return;
   }
 };
+export const getUserData = async (req: express.Request, res: express.Response) => {
+  try {
+    const userId = req.params.id;
+    const user = await getUserById(userId);
+    if (!user) {
+      res.status(404).json({ message: "Usuario no encontrado" });
+      return;
+    }
+    res.status(200).json(user);
+    return;
+  } catch (error) {
+    console.error("Error al obtener el usuario:", error);
+    res.status(500).json({ message: "Error al obtener el usuario" });
+    return;
+  }
+};
+
 
 export const deleteUser = async (
   req: express.Request,

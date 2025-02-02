@@ -33,11 +33,18 @@ export const login = async (req: express.Request, res: express.Response) => {
       return;
     }
 
+    // Remove the authentication field before sending the response
+    const userResponse = user.toObject();
+    delete userResponse.authentication;
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
       expiresIn: "1h",
     });
 
-    res.status(200).json({ message: "Login exitoso", token });
+    res
+      .status(200)
+      .json({ message: "Login exitoso", token, user: userResponse });
+
     return;
   } catch (error) {
     console.error("Error en login:", error);
@@ -49,7 +56,7 @@ export const login = async (req: express.Request, res: express.Response) => {
 export const register = async (req: express.Request, res: express.Response) => {
   try {
     const { email, password, username, role } = req.body;
-    let missingFields: string[] = [];
+    const missingFields = [];
 
     if (!email) missingFields.push("email");
     if (!password) missingFields.push("password");

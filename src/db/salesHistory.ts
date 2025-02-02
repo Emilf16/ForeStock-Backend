@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { IInvoice } from "./invoice";
+import { IProduct } from "./product";
 
 const salesHistorySchema = new Schema(
   {
@@ -38,7 +39,7 @@ export interface ISalesHistory extends Document {
   totalProductsSold: number;
   totalCategorySold: number;
   mostSoldProducts: Array<{
-    productId: string; 
+    productId: IProduct; 
     totalProducts: number;
     totalAmount: number;
   }>;
@@ -76,14 +77,12 @@ export const deleteSalesHistory = async (id: string) => {
   return await SalesHistoryModel.findByIdAndDelete(id);
 };
 export const getSalesHistoryByYear = async (year: number) => {
-  return await SalesHistoryModel.aggregate([
+  const salesHistory = await SalesHistoryModel.aggregate([
     {
-      $match: {
-        year: year, // Filtra por el año específico
-      },
+      $match: { year: year }, // Filtra por el año específico
     },
     {
-      $sort: { month: 1, createdAt: -1 }, // Ordena primero por mes y luego por fecha de creación descendente
+      $sort: { month: 1, createdAt: -1 }, // Ordena por mes y fecha de creación descendente
     },
     {
       $group: {
@@ -95,9 +94,14 @@ export const getSalesHistoryByYear = async (year: number) => {
       $replaceRoot: { newRoot: "$latestSale" }, // Reemplaza el documento por el registro más reciente
     },
     {
-      $sort: { month: 1 }, // Ordena los resultados por mes
+      $sort: { month: 1 }, // Ordena por mes
     },
   ]);
-};
 
+  // Usamos populate para cargar los detalles del producto
+  return await SalesHistoryModel.populate(salesHistory, {
+    path: "mostSoldProducts.productId", // Carga los detalles del producto
+    select: "name description price stock category", // Campos del producto que quieres cargar
+  });
+};
 

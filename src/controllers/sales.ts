@@ -482,7 +482,7 @@ export const askAboutReport = async (
     const newQuestion = questions[questions.length - 1].answer;
 
     // Crear el contexto completo para enviar a Gemini
-    const fullContext = `${context}\n\nHistorial de preguntas anteriores:\n${questionsContext}\n\nComo analista de mercado para una tienda, debes responder a las siguientes preguntas con base en los datos proporcionados. Tu enfoque debe ser profesional y orientado a estrategias de ventas y análisis de comportamiento de clientes.\n\nNueva Pregunta: "${newQuestion}"`;
+    const fullContext = `${context}\n\nHistorial de preguntas anteriores:\n${questionsContext}\n\nComo analista de mercado para una tienda, debes responder a las siguientes preguntas con base en los datos proporcionados. Tu enfoque debe ser profesional y orientado a estrategias de ventas y análisis de comportamiento de clientes.\n\nNueva Pregunta: "${newQuestion} por favor no me digas id de las cosas porque es data sensible"`;
 
     // Pasar el contexto a Gemini y obtener la respuesta
     const responseMessage = await getAnswerToQuestion(fullContext);

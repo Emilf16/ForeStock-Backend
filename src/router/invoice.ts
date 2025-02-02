@@ -5,7 +5,7 @@ import {
   createNewInvoice,
   updateInvoiceData,
   deleteInvoice,
-  getInvoicesForMonthAndYear,
+  getInvoicesForMonthAndYear,getInvoicesByUserId
 } from "../controllers/invoice";
 
 import { isAuthenticated } from "../middlewares";
@@ -19,6 +19,14 @@ export default (router: express.Router) => {
   // This route handles GET requests to retrieve a specific invoice by its ID.
   router.get("/invoices/:id", isAuthenticated, getInvoice);
 
+  // Route to create a new invoice
+  // This route handles POST requests to create a new invoice.
+  router.post("/invoices", isAuthenticated, createNewInvoice);
+
+  // Route to update an invoice by ID
+  // This route handles PUT requests to update an existing invoice by its ID.
+  router.put("/invoices/:id", isAuthenticated, updateInvoiceData);
+
   // Route to delete an invoice by ID
   // This route handles DELETE requests to remove an invoice by its ID.
   router.delete("/invoices/:id", isAuthenticated, deleteInvoice);
@@ -31,4 +39,9 @@ export default (router: express.Router) => {
     isAuthenticated,
     getInvoicesForMonthAndYear
   );
+
+  // Route to get invoices by user ID
+  // This route handles GET requests to retrieve all invoices for a specific user.
+  // The user ID is provided in the URL.
+  router.get("/invoices/user/:userId", isAuthenticated, getInvoicesByUserId);
 };

@@ -55,6 +55,10 @@ export const createInvoice = (values: Record<string, any>) =>
 export const deleteInvoiceById = (id: string) =>
   InvoiceModel.findByIdAndDelete(id);
 
+// Obtener facturas por usuario
+export const getInvoicesByUser = (userId: string) =>
+  InvoiceModel.find({ userId }).populate("userId products.productId");
+
 // Actualizar una factura por ID
 export const updateInvoiceById = (id: string, values: Record<string, any>) =>
   InvoiceModel.findByIdAndUpdate(id, values, { new: true });

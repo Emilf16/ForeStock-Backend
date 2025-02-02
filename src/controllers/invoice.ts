@@ -5,7 +5,7 @@ import {
   createInvoice,
   updateInvoiceById,
   deleteInvoiceById,
-  getInvoicesByMonthAndYear,
+  getInvoicesByMonthAndYear,getInvoicesByUser
 } from "../db/invoice"; // Importando los métodos del modelo de factura
 
 // Obtener todas las facturas
@@ -106,6 +106,19 @@ export const getInvoicesForMonthAndYear = async (
     res
       .status(500)
       .json({ message: "Error al obtener las facturas por mes y año" });
+    return;
+  }
+};
+// Obtener facturas por usuario
+export const getInvoicesByUserId = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId; // Obtener el userId de los parámetros de la ruta
+    const invoices = await getInvoicesByUser(userId); // Llamar a la función del modelo
+    res.status(200).json(invoices);
+    return;
+  } catch (error) {
+    console.error("Error al obtener las facturas por usuario:", error);
+    res.status(500).json({ message: "Error al obtener las facturas por usuario" });
     return;
   }
 };

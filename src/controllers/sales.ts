@@ -1,16 +1,6 @@
 import { Request, Response } from "express";
-import {
-  getProductById,
-  IProduct,
-  ProductModel,
-  updateProductStock,
-} from "../db/product"; // Métodos de productos (para obtener y actualizar el stock)
-import {
-  createInvoice,
-  getInvoicesByMonthAndYear,
-  IInvoice,
-  registerSalesHistory,
-} from "../db/invoice"; // Método para crear una factura
+import { getProductById, updateProductStock } from "../db/product"; // Métodos de productos (para obtener y actualizar el stock)
+import { createInvoice, registerSalesHistory } from "../db/invoice"; // Método para crear una factura
 import { GoogleGenerativeAI } from "@google/generative-ai"; // Clase de GoogleGenerativeAI
 import {
   SalesHistoryModel,
@@ -22,6 +12,7 @@ import {
 } from "../db/salesHistory"; // Modelo de SalesHistory
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
 export const createSaleAndInvoice = async (req: Request, res: Response) => {
   try {
     const { products, userId } = req.body; // Productos vendidos y ID del usuario
@@ -212,9 +203,9 @@ export const generateGeminiSalesReport = async (
           montoTotal: c.totalAmount,
         })),
       }));
-    
+
     console.log(filteredSalesHistory, "filteredSalesHistory");
-    
+
     // Construcción del prompt con datos bien estructurados
     const prompt = `
       Eres un analista de negocios especializado en ventas. A partir del siguiente historial de ventas, quiero que generes un informe detallado de minimo 1000 palabras que incluya los siguientes puntos:
@@ -297,7 +288,6 @@ export const generateGeminiSalesReport = async (
     return;
   }
 };
-
 export const getSalesHistoryByYearController = async (
   req: Request,
   res: Response
@@ -341,26 +331,6 @@ export const getSalesReports = async (req: Request, res: Response) => {
   }
 };
 
-export const getSaleReport = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { id } = req.params;
-  try {
-    if (id == null || id == undefined) {
-      res.status(404).json({ message: "id debe ser provisto" });
-      return;
-    }
-    const sale = await getSaleHistoryById(id);
-    res.status(200).json(sale);
-    return;
-  } catch (error) {
-    console.error(`Error al obtener venta con id ${id}:`, error);
-    res.status(500).json({ message: "Error interno del servidor" });
-    return;
-  }
-};
-
 export const deleteSaleReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -379,7 +349,6 @@ export const deleteSaleReport = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
-
 export const updateSaleReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -430,5 +399,122 @@ export const updateSaleReport = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error al actualizar reporte:", error);
     res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+export const getSaleReport = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+  try {
+    if (id == null || id == undefined) {
+      res.status(404).json({ message: "id debe ser provisto" });
+      return;
+    }
+    const sale = await getSaleHistoryById(id);
+    res.status(200).json(sale);
+    return;
+  } catch (error) {
+    console.error(`Error al obtener venta con id ${id}:`, error);
+    res.status(500).json({ message: "Error interno del servidor" });
+    return;
+  }
+};
+
+interface Question {
+  user: string;
+  answer: string;
+}
+
+export const askAboutReport = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+  const questions: Question[] = req.body;
+  try {
+    // Validación de que el ID esté presente
+    if (id == null || id == undefined) {
+      res.status(404).json({ message: "El ID debe ser proporcionado" });
+      return;
+    }
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      res
+        .status(400)
+        .json({
+          message:
+            "El cuerpo de la solicitud debe contener un listado de preguntas",
+        });
+      return;
+    }
+
+    // Obtener el SaleHistory por ID
+    const saleHistory = await getSaleHistoryById(id);
+    if (!saleHistory) {
+      res
+        .status(404)
+        .json({
+          message: `No se encontró el historial de ventas con el ID ${id}`,
+        });
+      return;
+    }
+
+    // Crear el contexto con el historial de ventas
+    const context = `Historial de ventas con ID ${id}: ${JSON.stringify(
+      saleHistory,
+      null,
+      2
+    )}`;
+
+    console.log(context,'context')
+
+    // Concatenar todas las preguntas previas en un formato legible para Gemini
+    const questionsContext = questions
+      .map((question, index) => {
+        return `Pregunta ${index + 1} de ${question.user}: "${
+          question.answer
+        }"`;
+      })
+      .join("\n");
+
+    // Tomar la última pregunta del listado como la nueva pregunta
+    const newQuestion = questions[questions.length - 1].answer;
+
+    // Crear el contexto completo para enviar a Gemini
+    const fullContext = `${context}\n\nHistorial de preguntas anteriores:\n${questionsContext}\n\nComo analista de mercado para una tienda, debes responder a las siguientes preguntas con base en los datos proporcionados. Tu enfoque debe ser profesional y orientado a estrategias de ventas y análisis de comportamiento de clientes.\n\nNueva Pregunta: "${newQuestion}"`;
+
+    // Pasar el contexto a Gemini y obtener la respuesta
+    const responseMessage = await getAnswerToQuestion(fullContext);
+
+    // Devolver la respuesta generada por Gemini
+    res.status(200).json({
+      message: "Pregunta respondida con éxito",
+      response: responseMessage,
+    });
+    return;
+  } catch (error) {
+    console.error(`Error al procesar las preguntas para el ID ${id}:`, error);
+    res.status(500).json({ message: "Error interno del servidor" });
+    return;
+  }
+};
+
+// Función para obtener la respuesta de Gemini o el modelo
+const getAnswerToQuestion = async (context: string): Promise<string> => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    // Llamada para generar contenido basado en el contexto proporcionado
+    const result = await model.generateContent(context);
+
+    // Procesamos la respuesta generada por el modelo
+    const responseText = result.response.text();
+
+    // Devolver la respuesta generada
+    return responseText;
+  } catch (error) {
+    console.error("Error al generar la respuesta con Gemini:", error);
+    throw new Error("Hubo un error al generar la respuesta con la IA.");
   }
 };

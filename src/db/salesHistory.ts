@@ -63,9 +63,12 @@ export const createSalesHistory = async (data: ISalesHistory) => {
 
 export const getSalesHistory = () => SalesHistoryModel.find();
 
-export const getSaleHistoryById = (id: string) =>
-  SalesHistoryModel.findById(id);
+export const getSaleHistoryById = async (id: string) => {
+  const saleHistory = await SalesHistoryModel.findById(id)
+    .populate("mostSoldProducts.productId", "name description price stock category"); // Cargar los detalles del producto
 
+  return saleHistory;
+};
 export const updateSalesHistory = async (
   id: string,
   data: Partial<ISalesHistory>

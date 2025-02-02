@@ -6,21 +6,26 @@ import {
   updateInvoiceData,
   deleteInvoice,
   getInvoicesForMonthAndYear,
-} from "../controllers/invoice"; // Importando los controladores de factura
+} from "../controllers/invoice";
 
-import { isAuthenticated } from "../middlewares"; // Middleware para autenticación
+import { isAuthenticated } from "../middlewares";
 
 export default (router: express.Router) => {
-  // Obtener todas las facturas
+  // Route to get all invoices
+  // This route handles GET requests to retrieve all invoices.
   router.get("/invoices", isAuthenticated, getAllInvoices);
 
-  // Obtener una factura por ID
+  // Route to get an invoice by ID
+  // This route handles GET requests to retrieve a specific invoice by its ID.
   router.get("/invoices/:id", isAuthenticated, getInvoice);
-   
-  // Eliminar una factura por ID
+
+  // Route to delete an invoice by ID
+  // This route handles DELETE requests to remove an invoice by its ID.
   router.delete("/invoices/:id", isAuthenticated, deleteInvoice);
 
-  // Obtener facturas por mes y año
+  // Route to get invoices for a specific month and year
+  // This route handles GET requests to retrieve invoices for a specific month and year.
+  // The month and year are provided in the URL.
   router.get(
     "/invoices/month/:month/year/:year",
     isAuthenticated,

@@ -3,18 +3,24 @@ import { getAllProducts,getProduct, createNewProduct, updateProductData, deleteP
 import { isAuthenticated } from "../middlewares/index";
 
 export default (router: express.Router) => {
-  // Obtener todos los productos
+  // Ruta para obtener todos los productos
+  // Esta ruta maneja solicitudes GET para obtener todos los productos.
   router.get("/products", isAuthenticated, getAllProducts);
 
-  // Obtener producto por id
+  // Ruta para obtener un producto por su ID
+  // Esta ruta maneja solicitudes GET para obtener un producto específico utilizando su ID.
   router.get("/products/:id", isAuthenticated, getProduct);
 
-  // Crear un nuevo producto
+  // Ruta para crear un nuevo producto
+  // Esta ruta maneja solicitudes POST para crear un nuevo producto.
   router.post("/products", isAuthenticated, createNewProduct);
 
-  // Actualizar un producto existente
+  // Ruta para actualizar los datos de un producto existente
+  // Esta ruta maneja solicitudes PATCH para actualizar un producto por su ID.
   router.patch("/products/:id", isAuthenticated, updateProductData);
 
-  // Eliminar un producto
+  // Ruta para eliminar un producto
+  // Esta ruta maneja solicitudes DELETE para eliminar un producto por su ID.
   router.delete("/products/:id", isAuthenticated, deleteProduct);
 };
+

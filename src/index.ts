@@ -1,5 +1,5 @@
 import express from "express";
-import https from "https";
+import http from "http";
 import fs from "fs";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
@@ -25,7 +25,7 @@ const options = {
   key: fs.readFileSync("server.key"),
   cert: fs.readFileSync("server.crt"),
 };
-const server = https.createServer(options, app);
+const server = http.createServer( app);
 
 
 const startServer = (port: number) => {
